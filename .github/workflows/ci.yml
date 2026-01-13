@@ -1,31 +1,24 @@
 name: Build and Push Docker
 
+# Запуск workflow при пуше в main
 on:
   push:
-    branches: [ "main" ]
-#  pull_request:
+    branches: [ main ]
+
+# Важно для GHCR: дать права на пакеты
+permissions:
+  contents: read
+  packages: write
 
 jobs:
-#  run-scripts:
-#    runs-on: ubuntu-latest   # бесплатно
-#
-#    steps:
-#      - name: Checkout repo
-#        uses: actions/checkout@v4
-#
-#      - name: Make scripts executable
-#        run: chmod +x scripts/*.sh
-#
-#      - name: Run custom script
-#        run: ./scripts/build.sh
-
   build-and-push:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Log in to GHCR
+      - name: Log in to GitHub Container Registry
         uses: docker/login-action@v2
         with:
           registry: ghcr.io
@@ -39,4 +32,3 @@ jobs:
       - name: Push Docker image
         run: |
           docker push ghcr.io/allexf/myapp:latest
-
