@@ -1,21 +1,42 @@
-name: CI
+name: Build and Push Docker
 
 on:
   push:
     branches: [ "main" ]
-  pull_request:
+#  pull_request:
 
 jobs:
-  run-scripts:
-    runs-on: ubuntu-latest   # бесплатно
+#  run-scripts:
+#    runs-on: ubuntu-latest   # бесплатно
+#
+#    steps:
+#      - name: Checkout repo
+#        uses: actions/checkout@v4
+#
+#      - name: Make scripts executable
+#        run: chmod +x scripts/*.sh
+#
+#      - name: Run custom script
+#        run: ./scripts/build.sh
 
+  build-and-push:
+    runs-on: ubuntu-latest
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-      - name: Make scripts executable
-        run: chmod +x scripts/*.sh
+      - name: Log in to GHCR
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: allexf
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Run custom script
-        run: ./scripts/build.sh
+      - name: Build Docker image
+        run: |
+          docker build -t ghcr.io/allexf/myapp:latest .
+
+      - name: Push Docker image
+        run: |
+          docker push ghcr.io/allexf/myapp:latest
 
