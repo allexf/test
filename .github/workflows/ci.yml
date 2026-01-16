@@ -27,11 +27,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Debug OIDC token
-        run: |
-          curl -sSL "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=sts.amazonaws.com" \
-          -H "Authorization: Bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
-          | jq -R 'split(".") | .[1] | @base64d | fromjson'
+      #- name: Debug OIDC token
+    #    run: |
+    #      curl -sSL "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=sts.amazonaws.com" \
+    #      -H "Authorization: Bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+    #      | jq -R 'split(".") | .[1] | @base64d | fromjson'
 
 
       - name: Configure AWS credentials (OIDC)
@@ -48,9 +48,12 @@ jobs:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           SHORT_SHA: ${{ github.sha }}
         run: |
-          SHORT_SHA=$(echo $SHORT_SHA | cut -c1-7)
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$SHORT_SHA .
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$SHORT_SHA
+          SHORT_SHA=$(git rev-parse --short HEAD)
+          docker build -t $ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/$REPO_NAME:$SHORT_SHA .
+          docker push $ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/$REPO_NAME:$SHORT_SHA
+          #SHORT_SHA=$(echo $SHORT_SHA | cut -c1-7)
+          #docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$SHORT_SHA .
+          #docker push $ECR_REGISTRY/$ECR_REPOSITORY:$SHORT_SHA
 
 
 #      - name: Log in to GitHub Container Registry
