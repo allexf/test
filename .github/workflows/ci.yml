@@ -15,7 +15,7 @@ permissions:
   id-token: write   # важно для OIDC
 
 env:
-  AWS_REGION: eu-noth-1
+  AWS_REGION: eu-north-1
   AWS_ACCOUNT_ID: 590183837670
   ECR_REPOSITORY: test-app
 
