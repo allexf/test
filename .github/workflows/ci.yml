@@ -27,6 +27,13 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Debug OIDC token
+        run: |
+          curl -sSL "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=sts.amazonaws.com" \
+          -H "Authorization: Bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+          | jq -R 'split(".") | .[1] | @base64d | fromjson'
+
+
       - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
         with:
