@@ -6,9 +6,18 @@ on:
     branches: [ main ]
 
 # Важно для GHCR: дать права на пакеты
+#permissions:
+#  contents: read
+#  packages: write
+
 permissions:
   contents: read
-  packages: write
+  id-token: write   # важно для OIDC
+
+env:
+  AWS_REGION: eu-noth-1
+  AWS_ACCOUNT_ID: 590183837670
+  ECR_REPOSITORY: test-app
 
 jobs:
   build-and-push:
@@ -16,19 +25,38 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v2
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          registry: ghcr.io
-          username: allexf
-          password: ${{ secrets.GITHUB_TOKEN }}
+          role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/github-oidc-ecr-push
+          aws-region: ${{ env.AWS_REGION }}
 
-      - name: Build Docker image
-        run: |
-          docker build -t ghcr.io/allexf/myapp:latest .
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Push Docker image
+      - name: Build and push Docker image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          SHORT_SHA: ${{ github.sha }}
         run: |
-          docker push ghcr.io/allexf/myapp:latest
+          SHORT_SHA=$(echo $SHORT_SHA | cut -c1-7)
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$SHORT_SHA .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$SHORT_SHA
+
+
+#      - name: Log in to GitHub Container Registry
+#        uses: docker/login-action@v2
+#        with:
+#          registry: ghcr.io
+#          username: allexf
+#          password: ${{ secrets.GITHUB_TOKEN }}
+#
+#      - name: Build Docker image
+#        run: |
+#          docker build -t ghcr.io/allexf/myapp:latest .
+#
+#      - name: Push Docker image
+#        run: |
+#          docker push ghcr.io/allexf/myapp:latest
