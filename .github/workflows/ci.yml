@@ -17,7 +17,7 @@ permissions:
 env:
   AWS_REGION: eu-north-1
   AWS_ACCOUNT_ID: 590183837670
-  ECR_REPOSITORY: test-app
+  ECR_REPO: test-app
 
 jobs:
   build-and-push:
