@@ -32,6 +32,10 @@ steps:
   displayName: "Prepare SSH"
 
 - script: |
+    sleep 30
+  displayName: "Wait for build arm64"
+
+- script: |
     ssh $EC2_USER@$EC2_HOST << 'EOF'
       set -e
       docker ps
