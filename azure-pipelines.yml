@@ -50,8 +50,8 @@ steps:
 
       PREV_IMAGE=$(docker inspect --format='{{.Config.Image}}' $APP_NAME || true)
 
-      docker rm -f \$APP_NAME || true
-      docker run -d --name \$APP_NAME -p 80:80 \$IMAGE
+      docker rm -f \${APP_NAME} || true
+      docker run -d --name \${APP_NAME} -p 80:80 \$IMAGE
 
       for i in {1..3}; do
         sleep 3
