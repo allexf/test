@@ -5,7 +5,7 @@ app = FastAPI()
 
 @app.get("/healthz")
 def healthz():
-    return PlainTextResponse("OK", status_code=200)
+    return PlainTextResponse("OKK", status_code=200)
 
 if __name__ == "__main__":
     import uvicorn
