@@ -12,6 +12,7 @@ pool:
 
 variables:
 - group: ec2-deploy-secrets
+APP_NAME: test-app
 
 steps:
 - script: echo Hello, world!
