@@ -62,7 +62,8 @@ stages:
 # ======================
 - stage: Production
   displayName: Deploy to Production (AWS)
-  dependsOn: Staging
+  # dependsOn: Staging
+  dependsOn: []
   condition: succeeded()
   jobs:
   - deployment: DeployAWS
