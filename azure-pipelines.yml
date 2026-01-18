@@ -11,8 +11,9 @@ pool:
   vmImage: ubuntu-latest
 
 variables:
-  - group: ec2-deploy-secrets
-  APP_NAME: test-app
+- group: ec2-deploy-secrets
+- name: APP_NAME
+  value: test-app
 
 steps:
 - script: echo Hello, world!
