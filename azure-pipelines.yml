@@ -32,7 +32,7 @@ steps:
   displayName: "Prepare SSH"
 
 - script: |
-    sleep 30
+    sleep 90
   displayName: "Wait for build arm64"
 
 - script: |
