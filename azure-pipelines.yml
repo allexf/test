@@ -47,6 +47,8 @@ steps:
       IMAGE="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${APP_NAME}:${IMAGE_TAG}"
 
       docker pull \$IMAGE
+ 
+      echo "APP_NAME "\${APP_NAME}
 
       PREV_IMAGE=$(docker inspect --format='{{.Config.Image}}' $APP_NAME || true)
 
