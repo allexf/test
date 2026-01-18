@@ -57,7 +57,7 @@ jobs:
         run: |
           SHORT_SHA=$(git rev-parse --short HEAD)
           SEMVER_TAG=$(git describe --tags --exact-match 2>/dev/null || echo "")
-          IMAGE_URI="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO}:${SHORT_SHA}"
+          IMAGE_URI="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO}"
           echo "IMAGE URI: $IMAGE_URI"
           
           # Buildx для arm64
