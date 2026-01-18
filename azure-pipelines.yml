@@ -16,6 +16,11 @@ stages:
 # ======================
 - stage: Staging
   displayName: Deploy to Staging (Azure)
+  condition: |
+    and(
+      succeeded(),
+      contains(variables['Build.SourceVersionMessage'], 'Merge pull request')
+    )
   jobs:
   - deployment: DeployAzure
     displayName: Deploy to Azure Staging
@@ -68,6 +73,11 @@ stages:
 # ======================
 - stage: Production
   displayName: Deploy to Production (AWS)
+  condition: |
+    and(
+      succeeded(),
+      contains(variables['Build.SourceVersionMessage'], 'Merge pull request')
+    )
   # dependsOn: Staging
   dependsOn: []
   condition: succeeded()
