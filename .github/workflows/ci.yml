@@ -1,6 +1,5 @@
 name: Build and Push Docker
 
-# Запуск workflow при пуше в main
 on:
   push:
     branches: [ main ]
@@ -22,6 +21,7 @@ env:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
+    if: contains(github.event.head_commit.message, 'Merge pull request')
 
     steps:
       - name: Checkout repository
@@ -54,15 +54,25 @@ jobs:
           SHORT_SHA: ${{ github.sha }}
         run: |
           SHORT_SHA=$(git rev-parse --short HEAD)
+          SEMVER_TAG=$(git describe --tags --exact-match || echo "")
           IMAGE_URI="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO}:${SHORT_SHA}"
           echo "IMAGE URI: $IMAGE_URI"
           
           # Buildx для arm64
-          docker buildx build \
-            --platform linux/arm64 \
-            -t $IMAGE_URI \
-            --push \
-            .
+          if [ -n "$SEMVER_TAG" ]; then
+            docker buildx build \
+              --platform linux/arm64 \
+              -t $IMAGE_URI:$SHORT_SHA \
+              -t $IMAGE_URI:$SEMVER_TAG \
+              --push \
+              .
+          else
+            docker buildx build \
+              --platform linux/arm64 \
+              -t $IMAGE_URI:$SHORT_SHA \
+              --push \
+              .
+          fi
 
       # - name: Build and push Docker image
       #   env:
