@@ -40,6 +40,8 @@ steps:
     ssh -o StrictHostKeyChecking=no $EC2_USER@$EC2_HOST << 'EOF'
       set -e
 
+      echo "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${APP_NAME}:${IMAGE_TAG}"
+
       IMAGE="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${APP_NAME}:${IMAGE_TAG}"
 
       docker pull $IMAGE
