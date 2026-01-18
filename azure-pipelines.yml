@@ -10,11 +10,23 @@ pool:
   name: test-ec2
   vmImage: ubuntu-latest
 
+variables:
+- group: ec2-deploy-secrets
+
 steps:
 - script: echo Hello, world!
   displayName: 'Run a one-line script'
 
 - script: |
-    echo Add other tasks to build, test, and deploy your project.
-    echo See https://aka.ms/yaml
-  displayName: 'Run a multi-line script'
+    mkdir -p ~/.ssh
+    echo -e "$EC2_SSH_KEY" > ~/.ssh/id_rsa
+    chmod 600 ~/.ssh/id_rsa
+    ssh-keyscan -H $EC2_HOST >> ~/.ssh/known_hosts
+  displayName: "Prepare SSH"
+
+- script: |
+    ssh $EC2_USER@$EC2_HOST << 'EOF'
+      set -e
+      docker ps
+    EOF
+  displayName: "Test SSH connection"
