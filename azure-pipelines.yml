@@ -2,7 +2,7 @@ trigger:
 - main
 
 pool:
-  name: test-ec2
+  name: test-ec2  # убрали vmImage здесь, чтобы не конфликтовало
 
 variables:
   - group: ec2-deploy-secrets
@@ -30,7 +30,7 @@ stages:
       displayName: Prepare SSH
 
     - script: |
-        ssh -o StrictHostKeyChecking=no $EC2_USER@$EC2_HOST << 'EOF'
+        ssh -o StrictHostKeyChecking=no $EC2_USER@$EC2_HOST << EOF
           set -e
 
           IMAGE="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${APP_NAME}:${IMAGE_TAG}"
