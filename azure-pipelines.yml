@@ -3,7 +3,6 @@ trigger:
 
 pool:
   name: test-ec2
-  vmImage: ubuntu-latest
 
 variables:
   - group: ec2-deploy-secrets
