@@ -1,1 +1,12 @@
-../../pipelines/.github/workflows/ci.yml
+name: Main CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  call-actual-workflow:
+    uses: ./pipelines/.github/workflows/ci.yml
+    secrets: inherit
