@@ -2,6 +2,7 @@ trigger:
 - main
 
 pool:
+  name: test-ec2
   vmImage: ubuntu-latest
 
 variables:
@@ -18,7 +19,7 @@ stages:
   jobs:
   - deployment: DeployAzure
     displayName: Deploy to Azure Staging
-    environment: staging   # <--- environment с ручным одобрением и health check
+    environment: staging
     strategy:
       runOnce:
         deploy:
