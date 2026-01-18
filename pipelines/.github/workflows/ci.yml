@@ -1,0 +1,95 @@
+name: Build and Push Docker
+
+on:
+  push:
+    branches: [ main ]
+
+# Важно для GHCR: дать права на пакеты
+#permissions:
+#  contents: read
+#  packages: write
+
+permissions:
+  contents: read
+  id-token: write   # важно для OIDC
+
+env:
+  AWS_REGION: eu-north-1
+  AWS_ACCOUNT_ID: 590183837670
+  ECR_REPO: test-app
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    if: contains(github.event.head_commit.message, 'Merge pull request')
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      #- name: Debug OIDC token
+    #    run: |
+    #      curl -sSL "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=sts.amazonaws.com" \
+    #      -H "Authorization: Bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+    #      | jq -R 'split(".") | .[1] | @base64d | fromjson'
+
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/github-oidc-ecr-push
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+  # Новый шаг для ARM64 сборки
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push Docker image (ARM64)
+        env:
+          SHORT_SHA: ${{ github.sha }}
+        run: |
+          SHORT_SHA=$(git rev-parse --short HEAD)
+          SEMVER_TAG=$(git describe --tags --exact-match 2>/dev/null || echo "")
+          IMAGE_URI="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO}"
+          echo "IMAGE URI: $IMAGE_URI"
+          
+          # Buildx для arm64
+          if [ -n "$SEMVER_TAG" ]; then
+            docker buildx build \
+              --platform linux/arm64 \
+              -t $IMAGE_URI:$SHORT_SHA \
+              -t $IMAGE_URI:$SEMVER_TAG \
+              --push \
+              .
+          else
+            docker buildx build \
+              --platform linux/arm64 \
+              -t $IMAGE_URI:$SHORT_SHA \
+              --push \
+              .
+          fi
+
+      # - name: Build and push Docker image
+      #   env:
+      #     ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+      #     SHORT_SHA: ${{ github.sha }}
+      #   run: |
+      #     SHORT_SHA=$(git rev-parse --short HEAD)
+      #     IMAGE_URI="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO}:${SHORT_SHA}"
+      #     #IMAGE_URI=${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPO }}:$SHORT_SHA
+      #     echo "IMAGE URI: $IMAGE_URI"
+      #     docker build -t $IMAGE_URI .
+      #     docker push $IMAGE_URI
+      #     #SHORT_SHA=$(echo $SHORT_SHA | cut -c1-7)
+      #     #docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$SHORT_SHA .
+      #     #docker push $ECR_REGISTRY/$ECR_REPOSITORY:$SHORT_SHA
+
+
+
