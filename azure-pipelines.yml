@@ -25,6 +25,11 @@ stages:
         deploy:
           steps:
           - script: |
+              SHORT_SHA=$(echo $(Build.SourceVersion) | cut -c1-7)
+              echo "##vso[task.setvariable variable=IMAGE_TAG]$SHORT_SHA"
+            displayName: Set image tag
+            
+          - script: |
               mkdir -p ~/.ssh
               echo -e "$AZURE_SSH_KEY" > ~/.ssh/id_rsa
               chmod 600 ~/.ssh/id_rsa
@@ -74,6 +79,11 @@ stages:
       runOnce:
         deploy:
           steps:
+          - script: |
+              SHORT_SHA=$(echo $(Build.SourceVersion) | cut -c1-7)
+              echo "##vso[task.setvariable variable=IMAGE_TAG]$SHORT_SHA"
+            displayName: Set image tag
+            
           - script: |
               mkdir -p ~/.ssh
               echo -e "$EC2_SSH_KEY" > ~/.ssh/id_rsa
