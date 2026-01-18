@@ -8,5 +8,5 @@ on:
 
 jobs:
   call-actual-workflow:
-    uses: ./pipelines/.github/workflows/ci.yml@v1
+    uses: ./pipelines/.github/workflows/ci.yml
     secrets: inherit
