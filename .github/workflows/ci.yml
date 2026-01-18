@@ -61,14 +61,14 @@ jobs:
 
           # Buildx для arm64
           if [ -n "$SEMVER_TAG" ]; then
-            docker buildx build \
+            docker buildx build -f app/Dockerfile \
               --platform linux/arm64 \
               -t $IMAGE_URI:$SHORT_SHA \
               -t $IMAGE_URI:$SEMVER_TAG \
               --push \
               .
           else
-            docker buildx build \
+            docker buildx build -f app/Dockerfile \
               --platform linux/arm64 \
               -t $IMAGE_URI:$SHORT_SHA \
               --push \
