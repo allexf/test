@@ -105,3 +105,4 @@ stages:
               IMAGE_TAG: $(IMAGE_TAG)
               APP_NAME: $(APP_NAME)
             displayName: "Deploy & Healthcheck AWS"
+
