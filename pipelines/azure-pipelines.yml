@@ -1,0 +1,129 @@
+trigger:
+- main
+
+pool:
+  name: test-ec2
+  vmImage: ubuntu-latest
+
+variables:
+- group: ec2-deploy-secrets
+- name: APP_NAME
+  value: test-app
+
+stages:
+# ======================
+# Stage: Staging (Azure)
+# ======================
+- stage: Staging
+  displayName: Deploy to Staging (Azure)
+  condition: |
+    and(
+      succeeded(),
+      contains(variables['Build.SourceVersionMessage'], 'Merge pull request')
+    )
+  jobs:
+  - deployment: DeployAzure
+    displayName: Deploy to Azure Staging
+    environment: staging
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - script: |
+              SHORT_SHA=$(echo $(Build.SourceVersion) | cut -c1-7)
+              echo "##vso[task.setvariable variable=IMAGE_TAG]$SHORT_SHA"
+            displayName: Set image tag
+            
+          - script: |
+              mkdir -p ~/.ssh
+              echo -e "$AZURE_SSH_KEY" > ~/.ssh/id_rsa
+              chmod 600 ~/.ssh/id_rsa
+              ssh-keyscan -H $AZURE_HOST >> ~/.ssh/known_hosts
+            displayName: "Prepare SSH for Azure"
+
+          - script: |
+              ssh -o StrictHostKeyChecking=no $AZURE_USER@$AZURE_HOST << EOF
+                set -e
+                IMAGE="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${APP_NAME}:${IMAGE_TAG}"
+                docker pull \$IMAGE
+                PREV_IMAGE=$(docker inspect --format='{{.Config.Image}}' $APP_NAME || true)
+                docker rm -f ${APP_NAME} || true
+                docker run -d --name ${APP_NAME} -p 80:80 \$IMAGE
+
+                for i in {1..3}; do
+                  sleep 3
+                  if curl -sf http://localhost/healthz; then
+                    echo "Health check OK"
+                    exit 0
+                  fi
+                done
+
+                echo "Health check failed — rollback"
+                docker rm -f $APP_NAME
+                docker run -d --name $APP_NAME -p 80:80 \$PREV_IMAGE
+                exit 1
+              EOF
+            env:
+              IMAGE_TAG: $(IMAGE_TAG)
+              APP_NAME: $(APP_NAME)
+            displayName: "Deploy & Healthcheck Azure"
+
+# ======================
+# Stage: Production (AWS)
+# ======================
+- stage: Production
+  displayName: Deploy to Production (AWS)
+  condition: |
+    and(
+      succeeded(),
+      contains(variables['Build.SourceVersionMessage'], 'Merge pull request')
+    )
+  # dependsOn: Staging
+  dependsOn: []
+  jobs:
+  - deployment: DeployAWS
+    displayName: Deploy to AWS Production
+    environment: production   # <--- environment с ручным одобрением и health check
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - script: |
+              SHORT_SHA=$(echo $(Build.SourceVersion) | cut -c1-7)
+              echo "##vso[task.setvariable variable=IMAGE_TAG]$SHORT_SHA"
+            displayName: Set image tag
+            
+          - script: |
+              mkdir -p ~/.ssh
+              echo -e "$EC2_SSH_KEY" > ~/.ssh/id_rsa
+              chmod 600 ~/.ssh/id_rsa
+              ssh-keyscan -H $EC2_HOST >> ~/.ssh/known_hosts
+            displayName: "Prepare SSH for AWS"
+
+          - script: |
+              ssh -o StrictHostKeyChecking=no $EC2_USER@$EC2_HOST << EOF
+                set -e
+                IMAGE="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${APP_NAME}:${IMAGE_TAG}"
+                docker pull \$IMAGE
+                PREV_IMAGE=$(docker inspect --format='{{.Config.Image}}' $APP_NAME || true)
+                docker rm -f ${APP_NAME} || true
+                docker run -d --name ${APP_NAME} -p 80:80 \$IMAGE
+
+                for i in {1..3}; do
+                  sleep 3
+                  if curl -sf http://localhost/healthz; then
+                    echo "Health check OK"
+                    exit 0
+                  fi
+                done
+
+                echo "Health check failed — rollback"
+                docker rm -f $APP_NAME
+                docker run -d --name $APP_NAME -p 80:80 \$PREV_IMAGE
+                exit 1
+              EOF
+            env:
+              IMAGE_TAG: $(IMAGE_TAG)
+              APP_NAME: $(APP_NAME)
+            displayName: "Deploy & Healthcheck AWS"
+
