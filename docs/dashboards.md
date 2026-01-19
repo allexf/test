@@ -1,4 +1,5 @@
-SLO №1 — Availability 99.9% (monthly)
+# SLO №1 — Availability 99.9% (monthly)
+
 aws cloudwatch create-service-level-objective \
   --region $REGION \
   --name "api-availability-99-9" \
@@ -30,7 +31,10 @@ aws cloudwatch create-service-level-objective \
     }
   }'
 
-SLO №2 — P95 latency ≤ 300 ms  /healthz
+---
+
+# SLO №2 — P95 latency ≤ 300 ms  /healthz
+
 aws cloudwatch create-service-level-objective \
   --region $REGION \
   --name "healthz-latency-p95-300ms" \
@@ -62,7 +66,10 @@ aws cloudwatch create-service-level-objective \
     }
   }'
 
-Alert: SLO burn rate (CloudWatch native)
+---
+
+# Alert: SLO burn rate (CloudWatch native)
+
 aws cloudwatch put-metric-alarm \
   --region $REGION \
   --alarm-name "slo-burnrate-critical" \
@@ -75,7 +82,10 @@ aws cloudwatch put-metric-alarm \
   --evaluation-periods 1 \
   --alarm-actions arn:aws:sns:eu-north-1:ACCOUNT_ID:ALERT_TOPIC
 
-Alert: 5-minute error rate > 2%
+---
+
+# Alert: 5-minute error rate > 2%
+
 aws cloudwatch put-metric-alarm \
   --region $REGION \
   --alarm-name "alb-error-rate-gt-2pct" \
@@ -122,7 +132,10 @@ aws cloudwatch put-metric-alarm \
   ]' \
   --alarm-actions arn:aws:sns:eu-north-1:ACCOUNT_ID:ALERT_TOPIC
 
-Alert: Daily cost threshold
+---
+
+# Alert: Daily cost threshold
+
 aws budgets create-budget \
   --account-id ACCOUNT_ID \
   --budget '{
